@@ -9,11 +9,6 @@ from fastapi import Depends
 from sqlalchemy.orm import session
 from pydantic import BaseModel, EmailStr
 from fastapi import Body
-
-
-
-
-
 from fastapi import FastAPI, File, UploadFile, HTTPException
 import torch
 from fastapi.middleware.cors import CORSMiddleware
@@ -451,3 +446,13 @@ async def login(user: UserLogin, db: session=Depends(get_db)):
         return JSONResponse(status_code=500, content={"message": f"Login failed: {str(e)}"})
     finally:
         db.close()
+
+
+
+
+
+
+
+# Copyright (c) 2025 Vinay Goswami
+# All rights reserved.
+# Unauthorized copying or distribution is prohibited.
