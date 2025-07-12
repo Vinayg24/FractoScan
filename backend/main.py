@@ -1,3 +1,19 @@
+from sqlalchemy import create_engine, Column, Integer, String, Float, Text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from fastapi.responses import JSONResponse
+from sqlalchemy import Boolean, DateTime
+from datetime import datetime
+from passlib.context import CryptContext
+from fastapi import Depends
+from sqlalchemy.orm import session
+from pydantic import BaseModel, EmailStr
+from fastapi import Body
+
+
+
+
+
 from fastapi import FastAPI, File, UploadFile, HTTPException
 import torch
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,6 +30,71 @@ import matplotlib.pyplot as plt
 import cv2
 from fastapi.staticfiles import StaticFiles
 import traceback
+
+
+# SQLite DB setup
+DATABASE_URL = "sqlite:///./detections.db"
+
+# SQLAlchemy setup
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# Define DetectionResult table
+class DetectionResult(Base):
+    __tablename__ = "detections"
+    id = Column(Integer, primary_key=True, index=True)
+    detection_id = Column(String, index=True)
+    class_name = Column(String)
+    confidence = Column(Float)
+    x1 = Column(Float)
+    y1 = Column(Float)
+    x2 = Column(Float)
+    y2 = Column(Float)
+    result_image = Column(Text)
+    explanation_image = Column(Text, nullable=True)
+    gradcam_image = Column(Text, nullable=True)
+    is_fracture_detected=Column(Boolean, default=False)
+    uploaded_at= Column(DateTime, default=datetime.utcnow)
+
+# Password hashing setup------> pydantic model
+pwd_context= CryptContext(schemes=['bcrypt'],deprecated='auto')
+
+class User(Base):
+    __tablename__="users"
+    id=Column(Integer,primary_key=True,index=True)
+    email=Column(String,unique=True,index=True,nullable=False)
+    hashed_password=Column(String,nullable=False)
+    full_name=Column(String,nullable=True)
+
+class UserCreate(BaseModel):
+    email: EmailStr 
+    password: str
+    full_name: str | None = None
+
+class UserLogin(BaseModel):
+    email: EmailStr 
+    password: str
+
+def get_password_hash(password: str):
+    return pwd_context.hash(password)
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+
+
+# Create table if not exists
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
@@ -171,6 +252,31 @@ async def detect(file: UploadFile = File(...)):
             
             gradcam_file_path = f"results/gradcam/{detection_id}_gradcam.jpg"
             cv2.imwrite(gradcam_file_path, gradcam_img)
+        is_fracture_detected = any(det["class"].lower() == "fracture" for det in detections)
+
+        try:
+            db = SessionLocal()
+            for det in detections:
+                db_result = DetectionResult(
+                    detection_id=detection_id,
+                    class_name=det["class"],
+                    confidence=det["confidence"],
+                    x1=det["box"]["x1"],
+                    y1=det["box"]["y1"],
+                    x2=det["box"]["x2"],
+                    y2=det["box"]["y2"],
+                    result_image=f"/results/{detection_id}_result.jpg",
+                    explanation_image=f"/results/explanations/{detection_id}_explanation.jpg" if explanation_file_path else None,
+                    gradcam_image=f"/results/gradcam/{detection_id}_gradcam.jpg" if gradcam_file_path else None,
+                    is_fracture_detected= is_fracture_detected,
+                    uploaded_at=datetime.utcnow()
+                )
+                db.add(db_result)
+            db.commit()
+            db.close()
+        except Exception as db_error:
+            logger.error(f"Failed to save to SQLite DB: {str(db_error)}")
+   
         
         return {
             "detection_id": detection_id,
@@ -265,6 +371,8 @@ async def get_gradcam(image_id: str):
         raise HTTPException(status_code=404, detail="Image not found")
     
     # Generate path for Grad-CAM
+
+    
     gradcam_path = f"results/gradcam/{image_id}_gradcam.jpg"
     
     # If already exists, return it
@@ -274,3 +382,72 @@ async def get_gradcam(image_id: str):
     # Otherwise, would typically regenerate it here
     # For this example, we'll return an error if it doesn't exist
     raise HTTPException(status_code=404, detail="Grad-CAM not available for this image")
+
+@app.get("/detections")
+def get_all_detections():
+    try:
+        db=SessionLocal()
+        results=db.query(DetectionResult).all()
+        output=[]
+        for r in results:
+            output.append({
+                      "detection_id": r.detection_id,
+                "class": r.class_name,
+                "confidence": r.confidence,
+                "box": {
+                    "x1": r.x1,
+                    "y1": r.y1,
+                    "x2": r.x2,
+                    "y2": r.y2,
+                },
+                "result_image":r.result_image,
+                "explanation_image": r.explanation_image,
+                "gradcam_image":r.gradcam_image
+                
+            })
+        db.close()
+        return JSONResponse(content=output)
+    except Exception as e:
+        logger.error(f"Error fetching detections: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch detections.")
+    
+@app.post("/register")
+async def register(user: UserCreate):
+    db = SessionLocal()
+    try:
+     # Check if user already exists
+        existing_user = db.query(User).filter(User.email == user.email).first()
+        if existing_user:
+            return JSONResponse(status_code=400, content={"message": "Email already registered"})
+        
+        # Hash the password and create user
+        hashed_password = get_password_hash(user.password)
+       # hashed_password = user.password ----> it can be used for getting the password
+
+        new_user = User(
+            email=user.email,
+            hashed_password=hashed_password,
+            full_name=user.full_name
+        )
+        db.add(new_user)
+        db.commit()
+        return {"message": "User registered successfully"}
+    except Exception as e:
+        return JSONResponse(status_code=500,content={'message':f"Regsitration failed: {str(e)}"})
+    finally:
+        db.close()
+
+@app.post("/login")
+async def login(user: UserLogin, db: session=Depends(get_db)):
+    db= SessionLocal()
+    try: 
+        db_user = db.query(User).filter(User.email == user.email).first()
+        if not db_user or not verify_password(user.password, db_user.hashed_password):
+            return JSONResponse(status_code=401, content={"message": "Invalid email or password"})
+        
+        # For simplicity, just return success message. You can add JWT token here later.
+        return {"message": "Login successful", "user": {"email": db_user.email, "full_name": db_user.full_name}}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"message": f"Login failed: {str(e)}"})
+    finally:
+        db.close()

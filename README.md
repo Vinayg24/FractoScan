@@ -1,11 +1,10 @@
 <div align="center">
   
-#  MediScan: AI-Powered Bone Fracture Detection
+#  FractoScan: AI-Powered Bone Fracture Detection
 </div>
 <div align="center">
   
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000)
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Built with: Python](https://img.shields.io/badge/Built%20with-Python-3776AB?logo=python&logoColor=white)
 ![Framework: FastAPI](https://img.shields.io/badge/Framework-FastAPI-009688?logo=fastapi&logoColor=white)
 ![Model: YOLOv8](https://img.shields.io/badge/Model-YOLOv8-00FFFF?logo=pytorch&logoColor=white)
@@ -18,7 +17,7 @@
 
 ## 📋 Overview
 
-MediScan is a state-of-the-art web application that uses artificial intelligence to help healthcare professionals identify bone fractures from X-ray images with high accuracy. The system leverages YOLOv8 deep learning models and provides visual explanations using Grad-CAM technology to enhance trust and interpretability.
+FractoScan is a state-of-the-art web application that uses artificial intelligence to help healthcare professionals identify bone fractures from X-ray images with high accuracy. The system leverages YOLOv8 deep learning models and provides visual explanations using Grad-CAM technology to enhance trust and interpretability.
 
 ## ✨ Key Features
 
@@ -46,7 +45,7 @@ MediScan is a state-of-the-art web application that uses artificial intelligence
 
 ## 🏗️ Architecture
 
-MediScan consists of two main components:
+FractoScan consists of two main components:
 
 1. **Backend (FastAPI)**: Handles image processing, runs the YOLOv8 model, and generates visualizations
 2. **Frontend (HTML/CSS/JS)**: Provides user interface for uploading X-rays and viewing results
@@ -102,8 +101,8 @@ MediScan consists of two main components:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/mediscan.git
-   cd mediscan
+   git clone https://github.com/yourusername/FractoScan.git
+   cd FractoScan
    ```
 
 2. **Install dependencies**
@@ -178,18 +177,10 @@ For developers who want to contribute to the project:
 
 ## 👥 Our Team
 
-MediScan is developed by a multidisciplinary team of AI/ML developers and software engineers:
+FractoScan is developed by a multidisciplinary team of AI/ML developers and software engineers:
 
-- **Alok Kumar** - *Full Stack Dev* - Lead developer specializing in AI integration and full-stack development
-- **Amrit Kumar** - *Technical Lead* - Project architect and technical lead overseeing system design and implementation
-- **Aashish Kumar** - *Python Dev* - Backend Python developer specializing in AI model integration and machine learning
-- **Samridhi Bagchi** - *Frontend Developer* - UI/UX specialist focused on creating intuitive medical interfaces
-- **Karan Singh** - *ML Engineer* - AI/ML expert specializing in medical image processing and deep learning model optimization
-
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](frontend/LICENSE) file for details.
-
+- **Laksh Vyas ** - Frontend and backend Lead
+- **Vinay Goswami** -  Backend Lead
 ## 🙏 Acknowledgements
 
 - [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) for the object detection model
@@ -200,5 +191,5 @@ This project is licensed under the MIT License - see the [LICENSE](frontend/LICE
 
 <div align="center">
   <p>Made with ❤️ for improving medical diagnostics</p>
-  <p>© 2025 MediScan Team</p>
+  <p>© 2025 FractoScan Team</p>
 </div>

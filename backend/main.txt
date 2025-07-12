@@ -1,0 +1,77 @@
+for backend :
+ls
+cd mediscan
+cd backend
+uvicorn main:app --reload
+http://127.0.0.1:8000/export/excel   # for exporting data in tha excel file.
+
+
+
+
+for frontend
+ls
+cd mediscan
+cd frontend
+python -m http.server 5500
+http://127.0.0.1:5500/
+"http://127.0.0.1:5500", 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+------>This line creates an instance of CryptContext from the passlib library.
+        CryptContext is a handy tool used to manage password hashing and verification in Python securely.
+
+------->pwd_context:
+This is just a variable name. Usually, this holds the password hashing context which you'll use to hash passwords and verify them later.
+
+CryptContext(...):
+This is a class from the passlib library that manages password hashing schemes.
+
+schemes=["bcrypt"]:
+This tells the context to use bcrypt as the hashing algorithm.
+
+bcrypt is a popular and secure password hashing function designed to be slow to protect against brute-force attacks.
+
+deprecated="auto":
+This parameter handles how deprecated or old hashing algorithms are treated.
+
+Setting it to "auto" means passlib will automatically mark older, less secure hashing schemes as deprecated.
+
+This helps you to upgrade old password hashes to newer, better algorithms transparently when users log in.
+
+
+
+pydantic Model:------>
+1. Pydantic models are used by FastAPI to validate and parse the incoming JSON request data automatically.
+
+2. They ensure the data sent by the client to your API matches the expected structure and types.
+
+3. If the data is invalid (e.g., missing fields, wrong types), FastAPI will automatically return an error response before even entering your route logic.
+
+
+
+from fastapi import Body----->This line imports the Body function/class from the FastAPI framework.
+
