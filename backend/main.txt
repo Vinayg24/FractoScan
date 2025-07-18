@@ -2,6 +2,7 @@ for backend :
 ls
 cd mediscan
 cd backend
+pip install fastapi uvicorn passlib[bcrypt] pydantic
 uvicorn main:app --reload
 http://127.0.0.1:8000/export/excel   # for exporting data in tha excel file.
 
